@@ -1,0 +1,56 @@
+1. 인터넷 사용하는 앱 권한 주기
+AndroidManifest.xml
+<uses-permission android:name="android.permission.INTERNET"/>
+
+2. Android 에서는 기본적으로 Http(인가가 안된 인터넷)를 막아놓음. 설정으로 해제
+<application 안에
+android:usesCleartextTraffic="true"
+추가
+
+3. Gradle Script / build.gradel에 dependencies에 추가(API)
+-Gson(Object to String 인 경우 toJson, String from Object fromJson) json용
+(Spring에서 jsonString으로 return해준 데이터를 다시 Vo나 List 형태로 바꾸는 API)
+-Retrofit2 : url을 요청하여 데이터를 받아오는 객체 API
+-RetrofitConverter : StringJson형태를 return 받아오기 위한 converter(종류 많음)
+
+================================================================
+
+    // Gson API  ( Json을 바꿀때 편함 )
+    implementation group: 'com.google.code.gson', name: 'gson', version: '2.8.9'
+    // 실제 Url을 요청하는 객체 ( API )
+    implementation group: 'com.squareup.retrofit2', name: 'retrofit', version: '2.9.0'
+    // String json 단일 데이터 타입용 컨버터
+    implementation group: 'com.squareup.retrofit2', name: 'converter-scalars', version: '2.9.0'
+
+================================================================
+
+4. Retrofit 공식 문서에 따르면 Api의 사용 방법을 정의해 둔 Interface를 초기화하여 사용하게끔 방법이 정해져 있음.
+Interface를 초기화 할 때 Client(요청) 객체가 꼭 필요함.
+
+ * Retrofit에서 가장 빈번하게 사용되는 통신 방식 : get, post
+   URL에 전송하고 있는 정보가 노출이 되는 지의 여부에 따라 구분이 가능함
+
+-GET : URL에 쿼리 스트링이 포함되어 있음. (Query) ? 이후 & 표시로 여러개를 보낼 수 있음.
+-POST : URL에 쿼리가 노출이 안됨 -> <body>(태그) 부분을 통해서 전송이 됨. (쿼리 아님 필드임, Field)
+
+[interface 예시]
+ public interface RetrofitInterface {
+    //Retrofit으로 return받는 모든 것들은 Call<클래스타입> 형태를 띄고있다.( 규칙 )
+
+    @GET("list.cu")
+    Call<String> getCuList();
+
+//    재사용이 가능하게 수정해줌. (path가 고정되어 있으면 매번 새로운 메소드를 만들어야 함.)
+
+    @GET("{path}")
+    Call<String> getClient(@Path("path") String path, @QueryMap HashMap<..>);
+  }
+
+[java 예시] (Retrofit 객체)
+ public Retrofit getRetrofit(){
+         Retrofit retrofit = new Retrofit.Builder()
+            .baseUrl("http://192.168.0.119:8080/middle/")
+            .addConverterFactory(ScalarsConverterFactory.create())
+            .build();
+         return retrofit;
+    }
